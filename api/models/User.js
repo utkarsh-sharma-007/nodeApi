@@ -24,7 +24,6 @@ module.exports = {
     },
     phone: {
       type: 'number',
-      // required: true
     },
     status: {
         type: 'string',

@@ -27,6 +27,12 @@ module.exports.routes = {
   'get  /getUserDetails': 'UserController.getUserDetails',
   'post  /sendResetPass': 'UserController.sendResetPass',
   'post  /resetPass': 'UserController.resetPass',
+  'post  /updateUserDetails': 'UserController.updateUserDetails',
+  'post  /addOrUpdateUserDevice': 'UserController.addOrUpdateUserDevice',
+  'post  /addOrUpdateUserEducation': 'UserController.addOrUpdateUserEducation',
+  'post  /addOrUpdateUserKnowledge': 'UserController.addOrUpdateUserKnowledge',
+  'post  /addOrUpdateUserPersonalInfo': 'UserController.addOrUpdateUserPersonalInfo',
+  'post  /addOrUpdateUserSocial': 'UserController.addOrUpdateUserSocial',
   'get  /hello': 'UserController.hello',
 
 

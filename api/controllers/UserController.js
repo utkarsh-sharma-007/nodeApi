@@ -19,6 +19,12 @@ module.exports = {
 	getUserDetails: getUserDetails,
 	sendResetPass: sendResetPass,
 	resetPass: resetPass,
+	updateUserDetails:updateUserDetails,
+	addOrUpdateUserDevice:addOrUpdateUserDevice,
+	addOrUpdateUserEducation:addOrUpdateUserEducation,
+	addOrUpdateUserKnowledge:addOrUpdateUserKnowledge,
+	addOrUpdateUserPersonalInfo:addOrUpdateUserPersonalInfo,
+	addOrUpdateUserSocial:addOrUpdateUserSocial,
 	hello: hello
 
 };
@@ -35,11 +41,28 @@ async function register(req,res) {
 		obj.password = crypto.createHash("sha1").update(req.body.password).digest('hex');
 		obj.OTP = tokgen.generate();
 		// console.log(obj);
-		await User.create(obj).exec((err,user)=>{
+		User.create(obj).exec((err,user)=>{
 			if(err)
 				return res.status(404).send(err)
 			else{
-				console.log(crypto.createHash("sha1").update(obj.OTP).digest('hex'),'<<<<<<<< use this as OTP to activate the account')
+				// console.log(user);
+				User.findOne({email:req.body.email}).exec((e,u)=>{
+					if(e)
+						return res.status(404).send(e)
+					else{
+						var messageToSend = 'OTP >>>>>>>   '+crypto.createHash("sha1").update(obj.OTP).digest('hex');
+						messageToSend += '  <br>  UserID>>>>>>>>> '+u.id;
+						// console.log(u,'user');
+						sendMail.sendMail(req.body.email,messageToSend,function(err,res){
+							if(err)
+								console.log(err);
+							else
+								console.log(res);
+						})
+					}
+				});
+				// console.log(crypto.createHash("sha1").update(obj.OTP).digest('hex'),'<<<<<<<< use this as OTP to activate the account');
+				// console.log(user.id,'<<<<<<<< use this as user id to activate the account');
 				res.status(200).send({
 					"message": "Your account has been created successfully. You will receive an approval mail on your email id. Check your spam email, if you do not receive email within 24 hours."
 				});
@@ -143,12 +166,22 @@ async function sendResetPass(req,res) {
 	if(!req.body.email)
 		return res.status(400).send('Unathorized')
 	else{
-		await User.findOne({email:req.body.email}).exec((err,user)=>{
+		User.findOne({email:req.body.email}).exec((err,user)=>{
 			if(err)
 				return res.status(404).send('User not found')
 			else{
 				var newOTP = tokgen.generate();
+				// console.log(user);
 				console.log(crypto.createHash("sha1").update(newOTP).digest('hex'),'<<<<<<<< use this as OTP to activate the account');
+				var messageToSend = 'OTP >>>>>>>   '+crypto.createHash("sha1").update(newOTP).digest('hex');
+				messageToSend += '  <br>  UserID>>>>>>>>> '+user.id;
+				// console.log(u,'user');
+				sendMail.sendMail(req.body.email,messageToSend,function(err,res){
+					if(err)
+						console.log(err);
+					else
+						console.log(res);
+				})
 				User.update({email:req.body.email}).set({OTP:newOTP})
 				.exec((err,data)=>{
 					if(err)
@@ -181,6 +214,87 @@ async function resetPass(req,res) {
 			return res.status(403).send('OTP does not match');
 		}
 
+	}
+}
+
+async function updateUserDetails(req,res) {
+	if(!req.body.email)
+		return res.status(400)
+	else{
+		console.log(req.session.user.id)
+		await User.update({id:req.session.user.id})
+		.set(req.body)
+		res.status(200).send('successfully updated');
+	}
+}
+
+async function addOrUpdateUserDevice(req,res) {
+	if(!req.body)
+		return res.status(400)
+	else{
+		if(req.body.device_id){
+			var updatedDevice = await Device.update({id:req.body.device_id}).set(req.body).fetch();
+			res.status(200).send({...updatedDevice,msg:'updated'})
+		}else{
+			var newDevice = await Device.create({...req.body,user_id:req.session.user.id}).fetch();
+			res.status(200).send({...newDevice,msg:'created'})
+		}
+	}
+}
+
+async function addOrUpdateUserEducation(req,res) {
+	if(!req.body)
+		return res.status(400)
+	else{
+		if(req.body.education_id){
+			var updatedEducation = await Education.update({id:req.body.education_id}).set(req.body).fetch();
+			res.status(200).send({...updatedEducation,msg:'updated'})
+		}else{
+			var newEducation = await Education.create({...req.body,user_id:req.session.user.id}).fetch();
+			res.status(200).send({...newEducation,msg:'created'})
+		}
+	}
+}
+
+async function addOrUpdateUserKnowledge(req,res) {
+	if(!req.body)
+		return res.status(400)
+	else{
+		if(req.body.knowledge_id){
+			var updatedKnowledge = await Knowledge.update({id:req.body.knowledge_id}).set(req.body).fetch();
+			res.status(200).send({...updatedKnowledge,msg:'updated'})
+		}else{
+			var newKnowledge = await Knowledge.create({...req.body,user_id:req.session.user.id}).fetch();
+			res.status(200).send({...newKnowledge,msg:'created'})
+		}
+	}
+}
+
+async function addOrUpdateUserPersonalInfo(req,res) {
+	if(!req.body)
+		return res.status(400)
+	else{
+		if(req.body.pi_id){
+			var updatedPI = await PersonalInfo.update({id:req.body.pi_id}).set(req.body).fetch();
+			res.status(200).send({...updatedPI,msg:'updated'})
+		}else{
+			var newPI = await PersonalInfo.create({...req.body,user_id:req.session.user.id}).fetch();
+			res.status(200).send({...newPI,msg:'created'})
+		}
+	}
+}
+
+async function addOrUpdateUserSocial(req,res) {
+	if(!req.body)
+		return res.status(400)
+	else{
+		if(req.body.social_id){
+			var updatedSocial = await Social.update({id:req.body.social_id}).set(req.body).fetch();
+			res.status(200).send({...updatedSocial,msg:'updated'})
+		}else{
+			var newSocial = await Social.create({...req.body,user_id:req.session.user.id}).fetch();
+			res.status(200).send({...newSocial,msg:'created'})
+		}
 	}
 }
 
