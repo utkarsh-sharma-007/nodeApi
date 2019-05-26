@@ -50,10 +50,12 @@ async function register(req,res) {
 					if(e)
 						return res.status(404).send(e)
 					else{
-						var messageToSend = 'OTP >>>>>>>   '+crypto.createHash("sha1").update(obj.OTP).digest('hex');
-						messageToSend += '  <br>  UserID>>>>>>>>> '+u.id;
+						// var messageToSend = 'OTP >>>>>>>   '+crypto.createHash("sha1").update(obj.OTP).digest('hex');
+						// messageToSend += '  <br>  UserID>>>>>>>>> '+u.id;
+						var otp = crypto.createHash("sha1").update(obj.OTP).digest('hex');
+						// var user_id = u.id;
 						// console.log(u,'user');
-						sendMail.sendMail(req.body.email,messageToSend,function(err,res){
+						sendMail.sendMail(req.body.email,otp,user.id,function(err,res){
 							if(err)
 								console.log(err);
 							else
@@ -172,11 +174,13 @@ async function sendResetPass(req,res) {
 			else{
 				var newOTP = tokgen.generate();
 				// console.log(user);
-				console.log(crypto.createHash("sha1").update(newOTP).digest('hex'),'<<<<<<<< use this as OTP to activate the account');
-				var messageToSend = 'OTP >>>>>>>   '+crypto.createHash("sha1").update(newOTP).digest('hex');
-				messageToSend += '  <br>  UserID>>>>>>>>> '+user.id;
-				// console.log(u,'user');
-				sendMail.sendMail(req.body.email,messageToSend,function(err,res){
+				// console.log(crypto.createHash("sha1").update(newOTP).digest('hex'),'<<<<<<<< use this as OTP to activate the account');
+				// var messageToSend = 'OTP >>>>>>>   '+crypto.createHash("sha1").update(newOTP).digest('hex');
+				// messageToSend += '  <br>  UserID>>>>>>>>> '+user.id;
+				var otp = crypto.createHash("sha1").update(newOTP).digest('hex');
+				// user.id;
+				// console.log(user.id,user.email);
+				sendMail.sendMail(req.body.email,otp,user.id,function(err,res){
 					if(err)
 						console.log(err);
 					else
