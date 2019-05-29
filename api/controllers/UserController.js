@@ -25,7 +25,10 @@ module.exports = {
 	addOrUpdateUserKnowledge:addOrUpdateUserKnowledge,
 	addOrUpdateUserPersonalInfo:addOrUpdateUserPersonalInfo,
 	addOrUpdateUserSocial:addOrUpdateUserSocial,
-	hello: hello
+	getUserList:getUserList,
+	requestEducator:requestEducator,
+	deleteRequest:deleteRequest
+	// hello: hello
 
 };
 
@@ -302,10 +305,116 @@ async function addOrUpdateUserSocial(req,res) {
 	}
 }
 
-async function hello(req,res){
-	sendMail.sendMail('hello',function(res){
-			console.log(res)
-	})
-	console.log(req.session);
-	res.status(200).send('okay');
+async function getUserList(req,res) {
+	if(!req.session.user.user_type)
+		return res.status(400)
+	else{
+		// let users = 
+		// console.log(req.session.user.user_type=='learner','learner','learner');
+		// let users = ;
+		// if(req.session.user.user_type=='learner'){
+		var type = 	req.session.user.user_type;
+		var utype = (req.session.user.user_type=='learner')?'educator':'learner';			
+		try {
+			let educators = await User.find({user_type:utype,status:'active'});
+			let request = await Request.find({
+				where: {learner_id:req.session.user.id},
+				select: [utype+'_id','accept_reject']
+			});
+			// let requests = request.map(val=>{
+			// 	return val[utype+'_id']
+			// })
+			// let accepted = request.map(val=>{
+			// 	return val[utype+'_id']
+			// })
+			educators = educators.map(val=>{
+				let obj = {...val};
+				// obj.request = {
+				// 	sent: false
+				// };
+				obj.request = request.filter(v=>{
+					if(v[utype+'_id']==obj.id)
+						return v
+				}).map(v=>{
+					let o = {};
+					o.sent = true;
+					o.accepted = v.accept_reject;
+					return o 
+				})[0];
+				if(!obj.request)
+					obj.request = {sent: false};
+				delete obj.password
+				delete obj.OTP
+				return obj;
+			})
+			// console.log(educators);
+			return res.status(200).send(educators);
+		}
+		catch(err) {
+			console.log(err);
+			return res.status(404).send(err);
+		}
+	}
 }
+
+async function requestEducator(req,res) {
+	if(!req.body.id)
+		return res.status(400)
+	else{
+		if(req.session.user.user_type=='learner'){
+			try{
+				let request = await Request.create({learner_id:req.session.user.id,educator_id:req.body.id});
+				return res.status(200).send({msg:'Requested'});
+			}
+			catch(err){
+				console.log(err,'error');
+				return res.status(400).send(err);
+			}
+		}
+		else{
+			return res.status(400).send({msg:'Educator cannot request other educators'});
+		}
+	}
+}
+
+async function deleteRequest(req,res) {
+	if(!req.body.id)
+		return res.status(400)
+	else{
+		if(req.session.user.user_type=='learner'){
+			try{
+				let request = await Request.destroy({learner_id:req.session.user.id,educator_id:req.body.id});
+				return res.status(200).send({msg:'Deleted'});
+			}
+			catch(err){
+				console.log(err,'error');
+				return res.status(400).send(err);
+			}
+		}
+		else{
+			return res.status(400).send('Unathorized');
+		}
+	}
+}
+
+// async function acceptRejectRequest(req,res) {
+// 	if(!req.body.id)
+// 		return res.status(400)
+// 	else{
+// 		if(req.session.user.user_type=='educator'){
+// 			try{
+// 				let request = await Request.findOne({learner_id:req.body.id,educator_id:req.session.user.id});
+// 				// console.log(request)
+// 				let update = await Request.findOne({learner_id:req.body.id,educator_id:req.session.user.id});
+// 				// return res.status(200).send({msg:'Deleted'});
+// 			}
+// 			catch(err){
+// 				console.log(err,'error');
+// 				return res.status(400).send(err);
+// 			}
+// 		}
+// 		else{
+// 			return res.status(400).send('Unathorized');
+// 		}
+// 	}
+// }

@@ -33,7 +33,10 @@ module.exports.routes = {
   'post  /addOrUpdateUserKnowledge': 'UserController.addOrUpdateUserKnowledge',
   'post  /addOrUpdateUserPersonalInfo': 'UserController.addOrUpdateUserPersonalInfo',
   'post  /addOrUpdateUserSocial': 'UserController.addOrUpdateUserSocial',
-  'get  /hello': 'UserController.hello',
+  'get  /getUserList': 'UserController.getUserList',
+  'post  /requestEducator': 'UserController.requestEducator',
+  'post  /deleteRequest': 'UserController.deleteRequest',
+  // 'get  /hello': 'UserController.hello',
 
 
   /***************************************************************************
